@@ -43,6 +43,31 @@ export default function Users() {
     }
   };
 
+  const handleEdit = (id) => {
+    router.push(`/users/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        // Recharger la liste après suppression
+        fetchUsers();
+      } catch (error) {
+        console.error('Failed to delete user:', error);
+        setError(error.message);
+      }
+    }
+  };
+
   if (loading) return <div className="p-6">Chargement...</div>;
   if (error) return <div className="p-6 text-red-500">Erreur : {error}</div>;
 
@@ -55,7 +80,7 @@ export default function Users() {
       >
         Créer un nouvel utilisateur
       </button>
-      <UserTable users={users} onEdit={(id) => router.push(`/users/${id}`)} />
+      <UserTable users={users} onEdit={handleEdit} onDelete={handleDelete} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-export default function UserTable({ users, onEdit }) {
+export default function UserTable({ users, onEdit, onDelete }) {
   return (
     <table className="min-w-full bg-white border border-gray-300">
       <thead>
@@ -34,9 +34,15 @@ export default function UserTable({ users, onEdit }) {
             <td className="py-2 px-4 border-b">
               <button
                 onClick={() => onEdit(user.id)}
-                className="bg-blue-500 text-white p-1 rounded-md hover:bg-blue-600"
+                className="bg-blue-500 text-white p-1 rounded-md hover:bg-blue-600 mr-2"
               >
                 Éditer
+              </button>
+              <button
+                onClick={() => onDelete(user.id)}
+                className="bg-red-500 text-white p-1 rounded-md hover:bg-red-600"
+              >
+                Supprimer
               </button>
             </td>
           </tr>
