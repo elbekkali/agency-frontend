@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import UserForm from '@/components/UserForm';
 
-export default function CreateUser({ params }) {
+export default function CreateUser() {
   const { user } = useAuth();
   const router = useRouter();
   const [initialData, setInitialData] = useState(null);
@@ -13,9 +13,8 @@ export default function CreateUser({ params }) {
   if (!user || user.role !== 'admin') router.push('/dashboard');
 
   const handleSave = async (data) => {
-    const url = initialData ? `${process.env.NEXT_PUBLIC_API_URL}/users/${initialData.id}` : `${process.env.NEXT_PUBLIC_API_URL}/users/`;
-    const method = initialData ? 'PUT' : 'POST';
-    const response = await fetch(url, {
+    const method = 'POST';
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/`, {
       method,
       headers: {
         'Content-Type': 'application/json',
@@ -26,5 +25,5 @@ export default function CreateUser({ params }) {
     if (response.ok) router.push('/users');
   };
 
-  return <UserForm onSave={handleSave} initialData={initialData} />;
+  return <UserForm key="create-user" onSave={handleSave} initialData={null} />;
 }

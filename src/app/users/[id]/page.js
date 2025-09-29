@@ -10,32 +10,59 @@ export default function EditUser() {
   const router = useRouter();
   const { id } = useParams();
   const [initialData, setInitialData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') router.push('/dashboard');
-    else fetchUser();
+    if (!user || user.role !== 'admin') {
+      router.push('/dashboard');
+    } else {
+      fetchUser();
+    }
   }, [user, router, id]);
 
   const fetchUser = async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
-    });
-    if (response.ok) setInitialData(await response.json());
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setInitialData(data);
+    } catch (error) {
+      console.error('Failed to fetch user:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async (data) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-      },
-      body: JSON.stringify(data),
-    });
-    if (response.ok) router.push('/users');
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      router.push('/users');
+    } catch (error) {
+      console.error('Failed to update user:', error);
+    }
   };
 
-  if (!initialData) return <div>Chargement...</div>;
+  if (loading) return <div>Chargement...</div>;
+  if (error) return <div>Erreur : {error}</div>;
+  if (!initialData) return <div>Utilisateur non trouvé</div>;
 
   return <UserForm onSave={handleSave} initialData={initialData} />;
 }

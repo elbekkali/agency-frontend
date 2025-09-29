@@ -1,4 +1,3 @@
-// src/lib/auth.js
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
@@ -18,6 +17,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
+    if (!process.env.NEXT_PUBLIC_API_URL) {
+      throw new Error('API URL is not defined. Check .env.local');
+    }
     const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/token`, new URLSearchParams({
       username: email,
       password: password,
