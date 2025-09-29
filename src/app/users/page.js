@@ -27,7 +27,7 @@ export default function Users() {
       if (!process.env.NEXT_PUBLIC_API_URL) {
         throw new Error('API URL is not defined. Check .env.local');
       }
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/?include_inactive=true`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
       });
       if (!response.ok) {
@@ -59,10 +59,30 @@ export default function Users() {
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        // Recharger la liste après suppression
         fetchUsers();
       } catch (error) {
         console.error('Failed to delete user:', error);
+        setError(error.message);
+      }
+    }
+  };
+
+  const handleToggleStatus = async (id, currentStatus) => {
+    const action = currentStatus === 'active' ? 'deactivate' : 'activate';
+    if (window.confirm(`Êtes-vous sûr de vouloir ${action === 'deactivate' ? 'désactiver' : 'activer'} cet utilisateur ?`)) {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}/${action}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        fetchUsers();
+      } catch (error) {
+        console.error(`Failed to ${action} user:`, error);
         setError(error.message);
       }
     }
@@ -80,7 +100,7 @@ export default function Users() {
       >
         Créer un nouvel utilisateur
       </button>
-      <UserTable users={users} onEdit={handleEdit} onDelete={handleDelete} />
+      <UserTable users={users} onEdit={handleEdit} onDelete={handleDelete} onToggleStatus={handleToggleStatus} />
     </div>
   );
 }

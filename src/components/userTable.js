@@ -1,6 +1,6 @@
 'use client';
 
-export default function UserTable({ users, onEdit, onDelete }) {
+export default function UserTable({ users, onEdit, onDelete, onToggleStatus }) {
   return (
     <table className="min-w-full bg-white border border-gray-300">
       <thead>
@@ -40,9 +40,17 @@ export default function UserTable({ users, onEdit, onDelete }) {
               </button>
               <button
                 onClick={() => onDelete(user.id)}
-                className="bg-red-500 text-white p-1 rounded-md hover:bg-red-600"
+                className="bg-red-500 text-white p-1 rounded-md hover:bg-red-600 mr-2"
               >
                 Supprimer
+              </button>
+              <button
+                onClick={() => onToggleStatus(user.id, user.status)}
+                className={`p-1 rounded-md text-white ${
+                  user.status === 'active' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
+                }`}
+              >
+                {user.status === 'active' ? 'Désactiver' : 'Activer'}
               </button>
             </td>
           </tr>
