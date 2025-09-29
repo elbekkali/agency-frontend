@@ -1,3 +1,4 @@
+// src/app/calls/[id]/page.js
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,32 +11,59 @@ export default function EditCall() {
   const router = useRouter();
   const { id } = useParams();
   const [initialData, setInitialData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!user || (user.role !== 'admin' && user.role !== 'agent')) router.push('/dashboard');
-    else fetchCall();
+    if (!user || (user.role !== 'admin' && user.role !== 'agent')) {
+      router.push('/dashboard');
+    } else {
+      fetchCall();
+    }
   }, [user, router, id]);
 
   const fetchCall = async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/calls/${id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
-    });
-    if (response.ok) setInitialData(await response.json());
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/calls/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setInitialData(data);
+    } catch (error) {
+      console.error('Failed to fetch call:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async (data) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/calls/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-      },
-      body: JSON.stringify(data),
-    });
-    if (response.ok) router.push('/calls');
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/calls/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      router.push('/calls');
+    } catch (error) {
+      console.error('Failed to update call:', error);
+    }
   };
 
-  if (!initialData) return <div>Chargement...</div>;
+  if (loading) return <div>Chargement...</div>;
+  if (error) return <div>Erreur : {error}</div>;
+  if (!initialData) return <div>Appel non trouvé</div>;
 
   return <CallForm onSave={handleSave} initialData={initialData} />;
 }

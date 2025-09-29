@@ -1,3 +1,4 @@
+// src/app/calls/page.js
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,18 +10,64 @@ export default function Calls() {
   const { user } = useAuth();
   const router = useRouter();
   const [calls, setCalls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!user || (user.role !== 'admin' && user.role !== 'agent')) router.push('/dashboard');
-    else fetchCalls();
+    if (!user || (user.role !== 'admin' && user.role !== 'agent')) {
+      router.push('/dashboard');
+    } else {
+      fetchCalls();
+    }
   }, [user, router]);
 
   const fetchCalls = async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/calls/`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
-    });
-    if (response.ok) setCalls(await response.json());
+    setLoading(true);
+    setError(null);
+    try {
+      if (!process.env.NEXT_PUBLIC_API_URL) {
+        throw new Error('API URL is not defined. Check .env.local');
+      }
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/calls/`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      setCalls(data);
+    } catch (error) {
+      console.error('Failed to fetch calls:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleEdit = (id) => {
+    router.push(`/calls/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet appel ?')) {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/calls/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        fetchCalls(); // Recharger la liste après suppression
+      } catch (error) {
+        console.error('Failed to delete call:', error);
+        setError(error.message);
+      }
+    }
+  };
+
+  if (loading) return <div className="p-6">Chargement...</div>;
+  if (error) return <div className="p-6 text-red-500">Erreur : {error}</div>;
 
   return (
     <div className="p-6">
@@ -31,7 +78,7 @@ export default function Calls() {
       >
         Créer un nouvel appel
       </button>
-      <CallTable calls={calls} onEdit={(id) => router.push(`/calls/${id}`)} />
+      <CallTable calls={calls} onEdit={handleEdit} onDelete={handleDelete} />
     </div>
   );
 }
