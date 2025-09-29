@@ -1,0 +1,70 @@
+// src/lib/auth.js
+'use client';
+
+import { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+
+const AuthContext = createContext();
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const login = async (email, password) => {
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/token`, new URLSearchParams({
+      username: email,
+      password: password,
+    }), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    const { access_token, refresh_token } = response.data;
+    localStorage.setItem('access_token', access_token);
+    localStorage.setItem('refresh_token', refresh_token);
+
+    const userResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+    const userData = userResponse.data;
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
+
+  const refreshToken = async () => {
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (refreshToken) {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/refresh-token`, { refresh_token: refreshToken });
+      const { access_token } = response.data;
+      localStorage.setItem('access_token', access_token);
+      return access_token;
+    }
+    return null;
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout, refreshToken }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
