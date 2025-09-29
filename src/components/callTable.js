@@ -1,7 +1,21 @@
-// src/components/CallTable.js
 'use client';
 
+import { useReference } from '@/lib/reference';
+
 export default function CallTable({ calls, onEdit, onDelete }) {
+  const { callTypeQueries, methodOfReplyOptions, responseStatuses, users } = useReference();
+
+  // Fonctions pour mapper les ID aux libellés
+  const getLabelFromId = (id, referenceArray, defaultValue = 'N/A') => {
+    const item = referenceArray.find((ref) => ref.id === id);
+    return item ? item.label || item.name || defaultValue : defaultValue;
+  };
+
+  const getUserNameFromId = (id, defaultValue = 'N/A') => {
+    const user = users.find((u) => u.id === id);
+    return user ? `${user.first_name} ${user.last_name}` || user.email || defaultValue : defaultValue;
+  };
+
   return (
     <table className="min-w-full bg-white border border-gray-300">
       <thead>
@@ -34,13 +48,21 @@ export default function CallTable({ calls, onEdit, onDelete }) {
             <td className="py-2 px-4 border-b">{call.recieved_from}</td>
             <td className="py-2 px-4 border-b">{call.client_name}</td>
             <td className="py-2 px-4 border-b">{call.contact_number}</td>
-            <td className="py-2 px-4 border-b">{call.type_of_query_id}</td>
+            <td className="py-2 px-4 border-b">
+              {getLabelFromId(call.type_of_query_id, callTypeQueries)}
+            </td>
             <td className="py-2 px-4 border-b">{call.reason_of_call}</td>
             <td className="py-2 px-4 border-b">{call.answered_by}</td>
-            <td className="py-2 px-4 border-b">{call.replied_to_id}</td>
-            <td className="py-2 px-4 border-b">{call.replied_method_id}</td>
+            <td className="py-2 px-4 border-b">
+              {getLabelFromId(call.replied_to_id, responseStatuses)}
+            </td>
+            <td className="py-2 px-4 border-b">
+              {getLabelFromId(call.replied_method_id, methodOfReplyOptions)}
+            </td>
             <td className="py-2 px-4 border-b">{call.replied_by}</td>
-            <td className="py-2 px-4 border-b">{call.assigned_to_id}</td>
+            <td className="py-2 px-4 border-b">
+              {getUserNameFromId(call.assigned_to_id)}
+            </td>
             <td className="py-2 px-4 border-b">{call.action_to_be_taken_by}</td>
             <td className="py-2 px-4 border-b">{call.actions_to_be_taken}</td>
             <td className="py-2 px-4 border-b">{call.action_taken}</td>

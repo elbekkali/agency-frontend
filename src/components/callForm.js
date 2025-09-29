@@ -1,9 +1,10 @@
-// src/components/CallForm.js
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useReference } from '@/lib/reference';
 
 export default function CallForm({ onSave, initialData }) {
+  const { callTypeQueries, methodOfReplyOptions, responseStatuses, users } = useReference();
   const [formData, setFormData] = useState(initialData || {
     date: '',
     time: '',
@@ -32,6 +33,26 @@ export default function CallForm({ onSave, initialData }) {
     e.preventDefault();
     onSave(formData);
   };
+
+  // Fonction pour trouver l'ID dans les données de référence
+  const getIdFromLabelOrId = (value, referenceArray) => {
+    if (!value) return '';
+    const item = referenceArray.find((ref) => ref.id === value || ref.label === value);
+    return item ? item.id : value; // Retourne l'ID si trouvé, sinon garde la valeur brute
+  };
+
+  // Initialisation avec conversion des ID en valeurs initiales
+  useEffect(() => {
+    if (initialData) {
+      setFormData((prev) => ({
+        ...prev,
+        type_of_query_id: getIdFromLabelOrId(initialData.type_of_query_id, callTypeQueries),
+        replied_to_id: getIdFromLabelOrId(initialData.replied_to_id, responseStatuses),
+        replied_method_id: getIdFromLabelOrId(initialData.replied_method_id, methodOfReplyOptions),
+        assigned_to_id: getIdFromLabelOrId(initialData.assigned_to_id, users),
+      }));
+    }
+  }, [initialData, callTypeQueries, responseStatuses, methodOfReplyOptions, users]);
 
   return (
     <div className="p-6">
@@ -92,15 +113,21 @@ export default function CallForm({ onSave, initialData }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Type de requête ID</label>
-          <input
-            type="text"
+          <label className="block text-sm font-medium text-gray-700">Type de requête</label>
+          <select
             name="type_of_query_id"
             value={formData.type_of_query_id}
             onChange={handleChange}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
             required
-          />
+          >
+            <option value="">Sélectionner un type</option>
+            {callTypeQueries.map((query) => (
+              <option key={query.id} value={query.id}>
+                {query.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Raison de l'appel</label>
@@ -124,26 +151,38 @@ export default function CallForm({ onSave, initialData }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Répondu à ID</label>
-          <input
-            type="text"
+          <label className="block text-sm font-medium text-gray-700">Répondu à</label>
+          <select
             name="replied_to_id"
             value={formData.replied_to_id}
             onChange={handleChange}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
             required
-          />
+          >
+            <option value="">Sélectionner un statut</option>
+            {responseStatuses.map((status) => (
+              <option key={status.id} value={status.id}>
+                {status.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Méthode de réponse ID</label>
-          <input
-            type="text"
+          <label className="block text-sm font-medium text-gray-700">Méthode de réponse</label>
+          <select
             name="replied_method_id"
             value={formData.replied_method_id}
             onChange={handleChange}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
             required
-          />
+          >
+            <option value="">Sélectionner une méthode</option>
+            {methodOfReplyOptions.map((method) => (
+              <option key={method.id} value={method.id}>
+                {method.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Répondu par</label>
@@ -157,14 +196,20 @@ export default function CallForm({ onSave, initialData }) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Assigné à ID</label>
-          <input
-            type="text"
+          <label className="block text-sm font-medium text-gray-700">Assigné à</label>
+          <select
             name="assigned_to_id"
             value={formData.assigned_to_id}
             onChange={handleChange}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-          />
+          >
+            <option value="">Non assigné</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {`${user.first_name} ${user.last_name}` || user.email}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Action à prendre par</label>
