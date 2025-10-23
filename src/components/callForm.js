@@ -1,72 +1,108 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { useReference } from '@/lib/reference';
 import { PhoneCall, User, MessageCircle, ClipboardList, Save } from 'lucide-react';
+
+// Fonction utilitaire pour comparer profondément deux objets
+const isEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+// Composant Field défini en dehors de CallForm
+const Field = memo(({ label, icon: Icon, children }) => (
+  <div className="space-y-1">
+    <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+      {Icon && <Icon className="w-4 h-4 text-blue-500" />} {label}
+    </label>
+    {children}
+  </div>
+));
+Field.displayName = 'Field'; // Ajout du displayName pour ESLint
 
 export default function CallForm({ onSave, initialData }) {
   const { callTypeQueries, methodOfReplyOptions, responseStatuses, users } = useReference();
 
+  // 🧩 Modèle de base pour le formulaire
+  const initialFormData = {
+    date: '',
+    time: '',
+    recieved_from: '',
+    client_name: '',
+    contact_number: '',
+    type_of_query_id: '',
+    reason_of_call: '',
+    answered_by: '',
+    replied_to_id: '',
+    replied_method_id: '',
+    replied_by: '',
+    assigned_to_id: '',
+    action_to_be_taken_by: '',
+    actions_to_be_taken: '',
+    action_taken: '',
+    other_comments: '',
+    status: 'Pending',
+  };
+
+  // 🧠 Initialisation de l'état avec fusion sécurisée
   const [formData, setFormData] = useState(
-    initialData || {
-      date: '',
-      time: '',
-      recieved_from: '',
-      client_name: '',
-      contact_number: '',
-      type_of_query_id: '',
-      reason_of_call: '',
-      answered_by: '',
-      replied_to_id: '',
-      replied_method_id: '',
-      replied_by: '',
-      assigned_to_id: '',
-      action_to_be_taken_by: '',
-      actions_to_be_taken: '',
-      action_taken: '',
-      other_comments: '',
-      status: 'Pending',
-    }
+    initialData ? { ...initialFormData, ...initialData } : initialFormData
   );
 
-  // 🧠 Gestion du changement des champs
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-
-  // ✅ Sauvegarde
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(formData);
-  };
-
-  // 🔍 Conversion ID/Label pour affichage correct
-  const getIdFromLabelOrId = (value, referenceArray) => {
+  // 🧩 Fonction utilitaire pour retrouver un ID à partir d’un label ou d’un ID
+  const getIdFromLabelOrId = useCallback((value, referenceArray) => {
     if (!value) return '';
-    const item = referenceArray.find((ref) => ref.id === value || ref.label === value);
+    const item = referenceArray.find(
+      (ref) => ref.id === value || ref.label === value
+    );
     return item ? item.id : value;
-  };
-  
+  }, []);
+
+  // ⚙️ Synchronisation des données initiales au montage
   useEffect(() => {
     if (!initialData) return;
 
-    setFormData((prev) => ({
-      ...prev,
-      type_of_query_id: getIdFromLabelOrId(initialData.type_of_query_id, callTypeQueries),
-      replied_to_id: getIdFromLabelOrId(initialData.replied_to_id, responseStatuses),
-      replied_method_id: getIdFromLabelOrId(initialData.replied_method_id, methodOfReplyOptions),
-      assigned_to_id: getIdFromLabelOrId(initialData.assigned_to_id, users),
-    }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData]);
+    setFormData((prev) => {
+      const newFormData = {
+        ...prev,
+        type_of_query_id: getIdFromLabelOrId(
+          initialData.type_of_query_id,
+          callTypeQueries
+        ),
+        replied_to_id: getIdFromLabelOrId(
+          initialData.replied_to_id,
+          responseStatuses
+        ),
+        replied_method_id: getIdFromLabelOrId(
+          initialData.replied_method_id,
+          methodOfReplyOptions
+        ),
+        assigned_to_id: getIdFromLabelOrId(
+          initialData.assigned_to_id,
+          users
+        ),
+      };
 
+      // Éviter la mise à jour si les données n'ont pas changé
+      if (isEqual(prev, newFormData)) return prev;
+      return newFormData;
+    });
+  }, [initialData, callTypeQueries, responseStatuses, methodOfReplyOptions, users, getIdFromLabelOrId]);
 
-  // 🧩 Petit composant utilitaire pour factoriser les champs
-  const Field = ({ label, icon: Icon, children }) => (
-    <div className="space-y-1">
-      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-        {Icon && <Icon className="w-4 h-4 text-blue-500" />} {label}
-      </label>
-      {children}
-    </div>
+  // 🧩 Gestion de la saisie
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData(prev => {
+      if (prev[name] === value) return prev;
+      return { ...prev, [name]: value };
+    });
+  }, []);
+
+  // ✅ Soumission du formulaire
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
+      onSave(formData);
+    },
+    [onSave, formData]
   );
 
   return (
@@ -92,17 +128,18 @@ export default function CallForm({ onSave, initialData }) {
               name="date"
               value={formData.date}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               required
             />
           </Field>
+
           <Field label="Heure">
             <input
               type="time"
               name="time"
               value={formData.time}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               required
             />
           </Field>
@@ -121,7 +158,7 @@ export default function CallForm({ onSave, initialData }) {
                 name="recieved_from"
                 value={formData.recieved_from}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
             </Field>
 
@@ -131,8 +168,8 @@ export default function CallForm({ onSave, initialData }) {
                 name="client_name"
                 value={formData.client_name}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
             </Field>
 
@@ -142,8 +179,8 @@ export default function CallForm({ onSave, initialData }) {
                 name="contact_number"
                 value={formData.contact_number}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
             </Field>
 
@@ -152,8 +189,8 @@ export default function CallForm({ onSave, initialData }) {
                 name="type_of_query_id"
                 value={formData.type_of_query_id}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
               >
                 <option value="">Sélectionner un type</option>
                 {callTypeQueries.map((query) => (
@@ -170,9 +207,9 @@ export default function CallForm({ onSave, initialData }) {
               name="reason_of_call"
               value={formData.reason_of_call}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              rows="3"
               required
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              rows="3"
             />
           </Field>
         </div>
@@ -190,8 +227,8 @@ export default function CallForm({ onSave, initialData }) {
                 name="answered_by"
                 value={formData.answered_by}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
             </Field>
 
@@ -200,8 +237,8 @@ export default function CallForm({ onSave, initialData }) {
                 name="replied_to_id"
                 value={formData.replied_to_id}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
               >
                 <option value="">Sélectionner un statut</option>
                 {responseStatuses.map((status) => (
@@ -217,8 +254,8 @@ export default function CallForm({ onSave, initialData }) {
                 name="replied_method_id"
                 value={formData.replied_method_id}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
               >
                 <option value="">Sélectionner une méthode</option>
                 {methodOfReplyOptions.map((method) => (
@@ -235,8 +272,8 @@ export default function CallForm({ onSave, initialData }) {
                 name="replied_by"
                 value={formData.replied_by}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 required
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
             </Field>
           </div>
@@ -254,7 +291,7 @@ export default function CallForm({ onSave, initialData }) {
                 name="assigned_to_id"
                 value={formData.assigned_to_id}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
               >
                 <option value="">Non assigné</option>
                 {users.map((user) => (
@@ -270,7 +307,7 @@ export default function CallForm({ onSave, initialData }) {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
               >
                 <option value="Open">Ouvert</option>
                 <option value="Pending">En attente</option>
@@ -285,7 +322,7 @@ export default function CallForm({ onSave, initialData }) {
               name="action_to_be_taken_by"
               value={formData.action_to_be_taken_by}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
           </Field>
 
@@ -294,8 +331,8 @@ export default function CallForm({ onSave, initialData }) {
               name="actions_to_be_taken"
               value={formData.actions_to_be_taken}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               rows="2"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
           </Field>
 
@@ -304,8 +341,8 @@ export default function CallForm({ onSave, initialData }) {
               name="action_taken"
               value={formData.action_taken}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               rows="2"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
           </Field>
 
@@ -314,13 +351,13 @@ export default function CallForm({ onSave, initialData }) {
               name="other_comments"
               value={formData.other_comments}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               rows="3"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
           </Field>
         </div>
 
-        {/* 🔘 Bouton d’action */}
+        {/* 💾 Bouton */}
         <div className="pt-6">
           <button
             type="submit"
