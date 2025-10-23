@@ -53,7 +53,7 @@ export default function Calls() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/calls/${id}`, {
           method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
         });
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
@@ -70,15 +70,17 @@ export default function Calls() {
   if (error) return <div className="p-6 text-red-500">Erreur : {error}</div>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4">Gestion des appels</h1>
-      <button
-        onClick={() => router.push('/calls/create')}
-        className="mb-4 bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
-      >
-        Créer un nouvel appel
-      </button>
-      <CallTable calls={calls} onEdit={handleEdit} onDelete={handleDelete} />
+    <div className="w-full px-10 py-8">
+      <div className="w-full flex flex-col gap-4">
+        <h1 className="text-3xl font-bold">Gestion des appels</h1>
+        <button
+          onClick={() => router.push('/calls/create')}
+          className="self-start bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+        >
+          Créer un nouvel appel
+        </button>
+        <CallTable calls={calls} onEdit={handleEdit} onDelete={handleDelete} />
+      </div>
     </div>
   );
 }

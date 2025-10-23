@@ -1,22 +1,22 @@
-// src/app/layout.js (mise à jour pour inclure ReferenceProvider)
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+// src/app/layout.js
 import '../styles/globals.css';
-import Navbar from '@/components/Navbar';
-import { AuthProvider } from '@/lib/auth';
-import { ReferenceProvider } from '@/lib/reference';  // Ajoute ceci
+import ClientProviders from '@/components/ClientProviders';
+
+export const metadata = {
+  title: 'Agency Dashboard',
+  description: 'Application de gestion Agency',
+};
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-gray-100">
-        <AuthProvider>
-          <ReferenceProvider>
-            <Navbar />
-            <main>{children}</main>
-            <ToastContainer />
-          </ReferenceProvider>
-        </AuthProvider>
+    <html lang="fr" className="scroll-smooth">
+      <body className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-100 text-gray-800 antialiased">
+        <ClientProviders>
+          {/* ⚡ Plein écran réel */}
+          <div className="w-screen overflow-x-hidden">
+            {children}
+          </div>
+        </ClientProviders>
       </body>
     </html>
   );

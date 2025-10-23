@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Camera, Save } from 'lucide-react';
 
 export default function UserForm({ onSave, initialData }) {
   const initialFormData = {
@@ -15,13 +16,34 @@ export default function UserForm({ onSave, initialData }) {
     profile_picture: '',
     notes: '',
   };
-  const [formData, setFormData] = useState(initialData ? { ...initialFormData, ...initialData } : initialFormData);
 
-  console.log('Initial data in UserForm:', initialData);
-  console.log('Form data initialized:', formData);
+  const [formData, setFormData] = useState(
+    initialData ? { ...initialFormData, ...initialData } : initialFormData
+  );
+
+  const [preview, setPreview] = useState(formData.profile_picture || '');
+
+  useEffect(() => {
+    if (initialData?.profile_picture) {
+      setPreview(initialData.profile_picture);
+    }
+  }, [initialData]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPreview(reader.result);
+      setFormData({ ...formData, profile_picture: reader.result });
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = (e) => {
@@ -30,146 +52,206 @@ export default function UserForm({ onSave, initialData }) {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4">{initialData ? 'Modifier utilisateur' : 'Créer utilisateur'}</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8 mt-8 border border-gray-200">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+        {initialData ? 'Modifier un utilisateur' : 'Créer un utilisateur'}
+      </h1>
+
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      >
+        {/* 🧑 Informations de base */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Prénom</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Prénom
+          </label>
           <input
             type="text"
             name="first_name"
             value={formData.first_name}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
             required
-            autoComplete="given-name"
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nom</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Nom
+          </label>
           <input
             type="text"
             name="last_name"
             value={formData.last_name}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
             required
-            autoComplete="family-name"
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Email
+          </label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
             required
-            autoComplete="new-email"
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-700">Téléphone</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Téléphone
+          </label>
           <input
             type="text"
             name="phone_number"
             value={formData.phone_number}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            autoComplete="tel"
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           />
         </div>
+
         {!initialData && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Mot de passe
+            </label>
             <input
               type="password"
               name="password"
-              value={formData.password || ''} // Assure une valeur par défaut vide
+              value={formData.password || ''}
               onChange={handleChange}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
               required
-              autoComplete="new-password"
+              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
             />
           </div>
         )}
+
+        {/* 🔧 Sélections */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Rôle</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Rôle
+          </label>
           <select
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            autoComplete="new-role"
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           >
             <option value="admin">Admin</option>
             <option value="agent">Agent</option>
             <option value="client">Client</option>
           </select>
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-700">Statut</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Statut
+          </label>
           <select
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            autoComplete="new-status"
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           >
             <option value="active">Actif</option>
             <option value="inactive">Inactif</option>
           </select>
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-700">Date de naissance</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Date de naissance
+          </label>
           <input
             type="date"
             name="birth_date"
             value={formData.birth_date || ''}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            autoComplete="bday"
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium text-gray-700">Adresse</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Adresse
+          </label>
           <input
             type="text"
             name="address"
-            value={formData.address || ''}
+            value={formData.address}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            autoComplete="street-address"
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Photo de profil</label>
-          <input
-            type="text"
-            name="profile_picture"
-            value={formData.profile_picture || ''}
-            onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            autoComplete="url"
-          />
+
+        {/* 📸 Photo de profil */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Photo de profil
+          </label>
+
+          <div className="flex items-center gap-4">
+            <label className="cursor-pointer flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed hover:bg-gray-200 transition">
+              {preview ? (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="w-24 h-24 object-cover rounded-full"
+                />
+              ) : (
+                <Camera className="w-8 h-8 text-gray-500" />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </label>
+
+            <input
+              type="text"
+              name="profile_picture"
+              value={formData.profile_picture}
+              onChange={handleChange}
+              placeholder="Ou collez l’URL d’une image"
+              className="flex-1 p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            />
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Notes</label>
+
+        {/* 📝 Notes */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Notes
+          </label>
           <textarea
             name="notes"
-            value={formData.notes || ''}
+            value={formData.notes}
             onChange={handleChange}
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            autoComplete="off"
-          />
+            rows="4"
+            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            placeholder="Notes ou remarques..."
+          ></textarea>
         </div>
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
-        >
-          Sauvegarder
-        </button>
+
+        {/* 💾 Bouton */}
+        <div className="md:col-span-2 text-center mt-6">
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-8 rounded-xl shadow-md hover:shadow-lg transition"
+          >
+            <Save className="w-5 h-5" />
+            Sauvegarder
+          </button>
+        </div>
       </form>
     </div>
   );

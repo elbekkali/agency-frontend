@@ -3,9 +3,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { toast } from 'react-toastify';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -15,31 +16,42 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4">Tableau de bord</h1>
-      <p>Bienvenue, {user.email} ({user.role})</p>
-      {user.role === 'admin' && (
-        <button
-          onClick={() => router.push('/users')}
-          className="mt-4 bg-green-500 text-white p-2 rounded-md hover:bg-green-600"
-        >
-          Gérer les utilisateurs
-        </button>
-      )}
-      {(user.role === 'admin' || user.role === 'agent') && (
-        <button
-          onClick={() => router.push('/calls')}
-          className="mt-4 ml-4 bg-green-500 text-white p-2 rounded-md hover:bg-green-600"
-        >
-          Gérer les appels
-        </button>
-      )}
-      <button
-        onClick={logout}
-        className="mt-4 ml-4 bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
-      >
-        Déconnexion
-      </button>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+
+      {/* Contenu principal */}
+      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-10">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Tableau de bord</h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {user.role === 'admin' && (
+            <button
+              onClick={() => router.push('/users')}
+              className="bg-white p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-blue-200 hover:border-blue-400 transition duration-300 text-center"
+            >
+              <h3 className="text-lg font-semibold text-blue-600 mb-2">
+                👤 Gérer les utilisateurs
+              </h3>
+              <p className="text-gray-500 text-sm">
+                Ajouter, modifier ou supprimer des utilisateurs.
+              </p>
+            </button>
+          )}
+
+          {(user.role === 'admin' || user.role === 'agent') && (
+            <button
+              onClick={() => router.push('/calls')}
+              className="bg-white p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-green-200 hover:border-green-400 transition duration-300 text-center"
+            >
+              <h3 className="text-lg font-semibold text-green-600 mb-2">
+                📞 Gérer les appels
+              </h3>
+              <p className="text-gray-500 text-sm">
+                Consulter et gérer les appels des clients.
+              </p>
+            </button>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
