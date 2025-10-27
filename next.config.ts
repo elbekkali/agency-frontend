@@ -1,22 +1,20 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  outputFileTracingRoot: path.join(__dirname, "../../"),
+  productionBrowserSourceMaps: true,
 
-  // ✅ Pour que Vercel optimise et bundle correctement
-  output: "standalone",
-
-  // ✅ Redirection API dynamique
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`, // <-- utilise l'URL backend en prod
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
       },
     ];
   },
 
-  // ✅ Sécurité HTTP
   async headers() {
     return [
       {
