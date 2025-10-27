@@ -2,10 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // ✅ Mode déploiement recommandé sur Vercel
+  // Fix Vercel build bug
+  distDir: '.next',
+
+  // ✅ Mode de déploiement
   output: "standalone",
 
-  // ✅ Rewrite vers ton backend déployé
   async rewrites() {
     return [
       {
