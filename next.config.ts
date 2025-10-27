@@ -1,11 +1,11 @@
-import path from "path";
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
-  outputFileTracingRoot: path.join(__dirname, "../../"),
-  productionBrowserSourceMaps: true,
 
+  // ✅ Mode déploiement recommandé sur Vercel
+  output: "standalone",
+
+  // ✅ Rewrite vers ton backend déployé
   async rewrites() {
     return [
       {
