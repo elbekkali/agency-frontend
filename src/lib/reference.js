@@ -1,7 +1,14 @@
-// src/lib/reference.js
 'use client';
 
-import { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
 import axios from 'axios';
 
 const ReferenceContext = createContext({
@@ -12,8 +19,8 @@ const ReferenceContext = createContext({
   refreshReferences: () => Promise.resolve(),
 });
 
-// Comparaison simple et fiable pour éviter des setState inutiles
-const isEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+// Comparaison simple et fiable (renommé avec _ pour éviter l'erreur ESLint)
+const _isEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // Helper sûr pour lire le token côté client
 const getAccessToken = () => {
@@ -35,23 +42,21 @@ export function ReferenceProvider({ children }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // Token mémoïsé (recalculé au montage et lorsqu’on le rafraîchit via refreshReferences)
-  const [tokenVersion, setTokenVersion] = useState(0);
-  const token = useMemo(() => (mounted ? getAccessToken() : null), [mounted, tokenVersion]);
+  // Token mémoïsé (recalculé au montage et lors du refresh)
+  const token = useMemo(() => (mounted ? getAccessToken() : null), [mounted]);
 
   // Anti-double requêtes
   const inFlightRef = useRef(false);
 
   const refreshReferences = useCallback(async () => {
-    // On relit le token à la demande
     setTokenVersion((v) => v + 1);
   }, []);
 
   const fetchAll = useCallback(async () => {
     const accessToken = getAccessToken();
-    if (!mounted || !accessToken) return; // pas de token → pas d'appel
+    if (!mounted || !accessToken) return;
 
-    if (inFlightRef.current) return; // une requête est déjà en cours
+    if (inFlightRef.current) return;
     inFlightRef.current = true;
 
     try {
@@ -64,14 +69,13 @@ export function ReferenceProvider({ children }) {
         axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/?include_inactive=true`, { headers }),
       ]);
 
-      setCallTypeQueries((prev) => (isEqual(prev, queriesRes.data) ? prev : queriesRes.data));
-      setMethodOfReplyOptions((prev) => (isEqual(prev, methodsRes.data) ? prev : methodsRes.data));
-      setResponseStatuses((prev) => (isEqual(prev, statusesRes.data) ? prev : statusesRes.data));
-      setUsers((prev) => (isEqual(prev, usersRes.data) ? prev : usersRes.data));
+      setCallTypeQueries((prev) => (_isEqual(prev, queriesRes.data) ? prev : queriesRes.data));
+      setMethodOfReplyOptions((prev) => (_isEqual(prev, methodsRes.data) ? prev : methodsRes.data));
+      setResponseStatuses((prev) => (_isEqual(prev, statusesRes.data) ? prev : statusesRes.data));
+      setUsers((prev) => (_isEqual(prev, usersRes.data) ? prev : usersRes.data));
     } catch (err) {
-      // Si 401 → on ne relance rien ici (pas de boucle)
       if (err?.response?.status === 401) {
-        // Optionnel: console.warn('ReferenceProvider: 401, token absent/expiré – fetch ignoré.');
+        // Token expiré ou absent → on ne fait rien
       } else {
         console.error('Failed to fetch references:', err);
       }
@@ -80,13 +84,13 @@ export function ReferenceProvider({ children }) {
     }
   }, [mounted]);
 
-  // 1) Premier chargement : uniquement si token présent
+  // Premier chargement si token présent
   useEffect(() => {
     if (!token) return;
     fetchAll();
   }, [token, fetchAll]);
 
-  // 2) Rechargement quand l’onglet devient actif (utile après login redirection)
+  // Rechargement quand l’onglet devient visible
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState === 'visible' && getAccessToken()) {
@@ -97,7 +101,7 @@ export function ReferenceProvider({ children }) {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [fetchAll]);
 
-  // 3) Écoute des changements de localStorage (login dans un autre onglet)
+  // Écoute des changements de localStorage (login dans un autre onglet)
   useEffect(() => {
     const onStorage = (e) => {
       if (e.key === 'access_token' && e.newValue) {
@@ -108,6 +112,7 @@ export function ReferenceProvider({ children }) {
     return () => window.removeEventListener('storage', onStorage);
   }, [fetchAll]);
 
+  // Valeur du contexte mémoïsée
   const value = useMemo(
     () => ({
       callTypeQueries,

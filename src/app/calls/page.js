@@ -71,11 +71,11 @@ export default function Calls() {
 
   return (
     <div className="w-full px-10 py-8">
-      <div className="w-full flex flex-col gap-4">
+      <div className="flex w-full flex-col gap-4">
         <h1 className="text-3xl font-bold">Gestion des appels</h1>
         <button
           onClick={() => router.push('/calls/create')}
-          className="self-start bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+          className="self-start rounded-md bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
         >
           Créer un nouvel appel
         </button>

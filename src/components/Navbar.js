@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { LogOut, LogIn, User, Phone, Home } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -12,17 +13,18 @@ export default function Navbar() {
   const router = useRouter();
 
   const links = [
-    { href: '/', label: 'Accueil', icon: <Home className="w-4 h-4" /> },
-    { href: '/users', label: 'Utilisateurs', icon: <User className="w-4 h-4" /> },
-    { href: '/calls', label: 'Appels', icon: <Phone className="w-4 h-4" /> },
+    { href: '/', label: 'Accueil', icon: <Home className="h-4 w-4" /> },
+    { href: '/users', label: 'Utilisateurs', icon: <User className="h-4 w-4" /> },
+    { href: '/calls', label: 'Appels', icon: <Phone className="h-4 w-4" /> },
   ];
 
-  const getInitials = (name, email) => {
-    if (!name && !email) return '?';
-    const parts = (name || email).split(' ');
-    if (parts.length >= 2)
-      return parts[0][0].toUpperCase() + parts[1][0].toUpperCase();
-    return parts[0][0].toUpperCase();
+  const getInitials = (firstName, lastName, email) => {
+    if (firstName && lastName) {
+      return `${firstName[0].toUpperCase()}${lastName[0].toUpperCase()}`;
+    }
+    if (firstName) return firstName[0].toUpperCase();
+    if (email) return email[0].toUpperCase();
+    return '?';
   };
 
   return (
@@ -30,29 +32,29 @@ export default function Navbar() {
       initial={{ y: -30, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl sticky top-0 z-50 backdrop-blur-md border-b border-blue-400/30"
+      className="sticky top-0 z-50 border-b border-blue-400/30 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl backdrop-blur-md"
     >
-      <div className="container mx-auto flex justify-between items-center px-8 py-5">
-        {/* 🟦 Logo */}
+      <div className="container mx-auto flex items-center justify-between px-8 py-5">
+        {/* Logo */}
         <Link
           href="/"
-          className="text-2xl font-extrabold tracking-tight hover:text-blue-100 transition"
+          className="text-2xl font-extrabold tracking-tight transition hover:text-blue-100"
         >
           Agency
         </Link>
 
-        {/* 🔗 Liens */}
+        {/* Liens Desktop */}
         {user && (
-          <div className="hidden md:flex gap-8">
+          <div className="hidden gap-8 md:flex">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-2 text-sm font-medium ${
+                className={`flex items-center gap-2 text-sm font-medium transition duration-200 ${
                   pathname === link.href
-                    ? 'text-yellow-300 border-b-2 border-yellow-300 pb-1'
+                    ? 'border-b-2 border-yellow-300 pb-1 text-yellow-300'
                     : 'text-blue-100 hover:text-white'
-                } transition duration-200`}
+                }`}
               >
                 {link.icon}
                 {link.label}
@@ -61,65 +63,65 @@ export default function Navbar() {
           </div>
         )}
 
-        {/* 👤 Zone droite */}
+        {/* Zone droite */}
         <div className="flex items-center gap-5">
           {user ? (
             <>
-              {/* Avatar utilisateur */}
-              <div className="relative">
+              {/* Avatar */}
+              <div
+                className="relative h-10 w-10 cursor-pointer"
+                onClick={() => router.push('/profile')}
+              >
                 {user.profile_picture ? (
-                  <img
+                  <Image
                     src={user.profile_picture}
                     alt="Profil"
-                    className="w-10 h-10 rounded-full border-2 border-white shadow-md object-cover cursor-pointer hover:scale-105 transition"
-                    onClick={() => router.push('/profile')}
+                    width={40}
+                    height={40}
+                    className="rounded-full border-2 border-white object-cover shadow-md transition hover:scale-105"
+                    unoptimized
                   />
                 ) : (
-                  <div
-                    className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center font-semibold cursor-pointer hover:bg-white/30 transition"
-                    onClick={() => router.push('/profile')}
-                  >
-                    {getInitials(user.first_name || '', user.email || '')}
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 font-semibold text-white transition hover:bg-white/30">
+                    {getInitials(user.first_name || '', user.last_name || '', user.email || '')}
                   </div>
                 )}
               </div>
 
-              {/* Bouton déconnexion */}
+              {/* Déconnexion */}
               <button
                 onClick={() => {
                   logout();
                   router.push('/login');
                 }}
-                className="flex items-center gap-2 bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm font-semibold shadow-md hover:shadow-lg transition"
+                className="flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-sm font-semibold shadow-md transition hover:bg-red-600 hover:shadow-lg"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="h-4 w-4" />
                 Déconnexion
               </button>
             </>
           ) : (
             <Link
               href="/login"
-              className="flex items-center gap-2 bg-green-500 hover:bg-green-600 px-4 py-2 rounded-md text-sm font-semibold shadow-md hover:shadow-lg transition"
+              className="flex items-center gap-2 rounded-md bg-green-500 px-4 py-2 text-sm font-semibold shadow-md transition hover:bg-green-600 hover:shadow-lg"
             >
-              <LogIn className="w-4 h-4" />
+              <LogIn className="h-4 w-4" />
               Connexion
             </Link>
           )}
         </div>
       </div>
 
-      {/* 🌐 Barre mobile */}
+      {/* Barre mobile */}
       {user && (
-        <div className="md:hidden border-t border-blue-400/40 bg-blue-700/90 backdrop-blur-sm">
+        <div className="border-t border-blue-400/40 bg-blue-700/90 backdrop-blur-sm md:hidden">
           <div className="flex justify-around py-3">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex flex-col items-center text-xs ${
-                  pathname === link.href
-                    ? 'text-yellow-300'
-                    : 'text-blue-100 hover:text-white'
+                className={`flex flex-col items-center text-xs transition ${
+                  pathname === link.href ? 'text-yellow-300' : 'text-blue-100 hover:text-white'
                 }`}
               >
                 {link.icon}

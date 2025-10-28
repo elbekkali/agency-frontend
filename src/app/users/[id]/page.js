@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import UserForm from '@/components/UserForm';
@@ -13,15 +13,8 @@ export default function EditUser() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      router.push('/dashboard');
-    } else {
-      fetchUser();
-    }
-  }, [user, router, id]);
-
-  const fetchUser = async () => {
+  // Enveloppe fetchUser dans useCallback
+  const fetchUser = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -39,7 +32,15 @@ export default function EditUser() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]); // id est stable
+
+  useEffect(() => {
+    if (!user || user.role !== 'admin') {
+      router.push('/dashboard');
+    } else {
+      fetchUser();
+    }
+  }, [user, router, fetchUser]); // fetchUser ajouté
 
   const handleSave = async (data) => {
     try {
@@ -47,7 +48,7 @@ export default function EditUser() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
         body: JSON.stringify(data),
       });

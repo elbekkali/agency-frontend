@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { toast } from 'react-toastify';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -16,22 +15,21 @@ export default function Dashboard() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-
+    <div className="flex min-h-screen flex-col bg-gray-50">
       {/* Contenu principal */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-10">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Tableau de bord</h2>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-10">
+        <h2 className="mb-6 text-2xl font-bold text-gray-800">Tableau de bord</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {user.role === 'admin' && (
             <button
               onClick={() => router.push('/users')}
-              className="bg-white p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-blue-200 hover:border-blue-400 transition duration-300 text-center"
+              className="rounded-xl border border-gray-200 bg-white p-6 text-center shadow-md transition duration-300 hover:border-blue-400 hover:shadow-blue-200"
             >
-              <h3 className="text-lg font-semibold text-blue-600 mb-2">
+              <h3 className="mb-2 text-lg font-semibold text-blue-600">
                 👤 Gérer les utilisateurs
               </h3>
-              <p className="text-gray-500 text-sm">
+              <p className="text-sm text-gray-500">
                 Ajouter, modifier ou supprimer des utilisateurs.
               </p>
             </button>
@@ -40,14 +38,10 @@ export default function Dashboard() {
           {(user.role === 'admin' || user.role === 'agent') && (
             <button
               onClick={() => router.push('/calls')}
-              className="bg-white p-6 rounded-xl shadow-md border border-gray-200 hover:shadow-green-200 hover:border-green-400 transition duration-300 text-center"
+              className="rounded-xl border border-gray-200 bg-white p-6 text-center shadow-md transition duration-300 hover:border-green-400 hover:shadow-green-200"
             >
-              <h3 className="text-lg font-semibold text-green-600 mb-2">
-                📞 Gérer les appels
-              </h3>
-              <p className="text-gray-500 text-sm">
-                Consulter et gérer les appels des clients.
-              </p>
+              <h3 className="mb-2 text-lg font-semibold text-green-600">📞 Gérer les appels</h3>
+              <p className="text-sm text-gray-500">Consulter et gérer les appels des clients.</p>
             </button>
           )}
         </div>

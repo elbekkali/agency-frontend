@@ -5,21 +5,26 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-api.interceptors.request.use(async (config) => {
-  let token = localStorage.getItem('access_token');
-  if (!token) {
-    token = await refreshToken();
-  }
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => Promise.reject(error));
+api.interceptors.request.use(
+  async (config) => {
+    let token = localStorage.getItem('access_token');
+    if (!token) {
+      token = await refreshToken();
+    }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 const refreshToken = async () => {
   const refreshToken = localStorage.getItem('refresh_token');
   if (refreshToken) {
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/refresh-token`, { refresh_token: refreshToken });
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/refresh-token`, {
+      refresh_token: refreshToken,
+    });
     const { access_token } = response.data;
     localStorage.setItem('access_token', access_token);
     return access_token;

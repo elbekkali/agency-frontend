@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Camera, Save } from 'lucide-react';
+import Image from 'next/image';
 
 export default function UserForm({ onSave, initialData }) {
   const initialFormData = {
@@ -21,13 +22,8 @@ export default function UserForm({ onSave, initialData }) {
     initialData ? { ...initialFormData, ...initialData } : initialFormData
   );
 
-  const [preview, setPreview] = useState(formData.profile_picture || '');
-
-  useEffect(() => {
-    if (initialData?.profile_picture) {
-      setPreview(initialData.profile_picture);
-    }
-  }, [initialData]);
+  // Preview dynamique
+  const [preview, setPreview] = useState(initialData?.profile_picture || '');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,8 +36,9 @@ export default function UserForm({ onSave, initialData }) {
 
     const reader = new FileReader();
     reader.onload = () => {
-      setPreview(reader.result);
-      setFormData({ ...formData, profile_picture: reader.result });
+      const result = reader.result;
+      setPreview(result);
+      setFormData({ ...formData, profile_picture: result });
     };
     reader.readAsDataURL(file);
   };
@@ -52,97 +49,86 @@ export default function UserForm({ onSave, initialData }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8 mt-8 border border-gray-200">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+    <div className="mx-auto mt-8 max-w-4xl rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
+      <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
         {initialData ? 'Modifier un utilisateur' : 'Créer un utilisateur'}
       </h1>
 
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-      >
-        {/* 🧑 Informations de base */}
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Prénom */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Prénom
-          </label>
+          <label className="mb-1 block text-sm font-semibold text-gray-700">Prénom</label>
           <input
             type="text"
             name="first_name"
             value={formData.first_name}
             onChange={handleChange}
             required
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            className="w-full rounded-lg border border-gray-300 p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
+        {/* Nom */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Nom
-          </label>
+          <label className="mb-1 block text-sm font-semibold text-gray-700">Nom</label>
           <input
             type="text"
             name="last_name"
             value={formData.last_name}
             onChange={handleChange}
             required
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            className="w-full rounded-lg border border-gray-300 p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
+        {/* Email */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Email
-          </label>
+          <label className="mb-1 block text-sm font-semibold text-gray-700">Email</label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            className="w-full rounded-lg border border-gray-300 p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
+        {/* Téléphone */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Téléphone
-          </label>
+          <label className="mb-1 block text-sm font-semibold text-gray-700">Téléphone</label>
           <input
             type="text"
             name="phone_number"
             value={formData.phone_number}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            className="w-full rounded-lg border border-gray-300 p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
+        {/* Mot de passe (création uniquement) */}
         {!initialData && (
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Mot de passe
-            </label>
+            <label className="mb-1 block text-sm font-semibold text-gray-700">Mot de passe</label>
             <input
               type="password"
               name="password"
               value={formData.password || ''}
               onChange={handleChange}
               required
-              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="w-full rounded-lg border border-gray-300 p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
             />
           </div>
         )}
 
-        {/* 🔧 Sélections */}
+        {/* Rôle */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Rôle
-          </label>
+          <label className="mb-1 block text-sm font-semibold text-gray-700">Rôle</label>
           <select
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            className="w-full rounded-lg border border-gray-300 bg-white p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           >
             <option value="admin">Admin</option>
             <option value="agent">Agent</option>
@@ -150,23 +136,23 @@ export default function UserForm({ onSave, initialData }) {
           </select>
         </div>
 
+        {/* Statut */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Statut
-          </label>
+          <label className="mb-1 block text-sm font-semibold text-gray-700">Statut</label>
           <select
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            className="w-full rounded-lg border border-gray-300 bg-white p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           >
             <option value="active">Actif</option>
             <option value="inactive">Inactif</option>
           </select>
         </div>
 
+        {/* Date de naissance */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
+          <label className="mb-1 block text-sm font-semibold text-gray-700">
             Date de naissance
           </label>
           <input
@@ -174,81 +160,76 @@ export default function UserForm({ onSave, initialData }) {
             name="birth_date"
             value={formData.birth_date || ''}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            className="w-full rounded-lg border border-gray-300 p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
+        {/* Adresse */}
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Adresse
-          </label>
+          <label className="mb-1 block text-sm font-semibold text-gray-700">Adresse</label>
           <input
             type="text"
             name="address"
             value={formData.address}
             onChange={handleChange}
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            className="w-full rounded-lg border border-gray-300 p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* 📸 Photo de profil */}
+        {/* Photo de profil */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Photo de profil
-          </label>
+          <label className="mb-2 block text-sm font-semibold text-gray-700">Photo de profil</label>
 
           <div className="flex items-center gap-4">
-            <label className="cursor-pointer flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed hover:bg-gray-200 transition">
+            {/* Zone d'aperçu */}
+            <label className="relative flex h-24 w-24 cursor-pointer items-center justify-center rounded-full border-2 border-dashed bg-gray-100 transition hover:bg-gray-200">
               {preview ? (
-                <img
+                <Image
                   src={preview}
-                  alt="Preview"
-                  className="w-24 h-24 object-cover rounded-full"
+                  alt="Aperçu"
+                  width={96}
+                  height={96}
+                  className="rounded-full object-cover"
+                  unoptimized
                 />
               ) : (
-                <Camera className="w-8 h-8 text-gray-500" />
+                <Camera className="h-8 w-8 text-gray-500" />
               )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
+              <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
             </label>
 
+            {/* URL manuelle */}
             <input
               type="text"
               name="profile_picture"
               value={formData.profile_picture}
               onChange={handleChange}
               placeholder="Ou collez l’URL d’une image"
-              className="flex-1 p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="flex-1 rounded-lg border border-gray-300 p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
-        {/* 📝 Notes */}
+        {/* Notes */}
         <div className="md:col-span-2">
-          <label className="block text-sm font-semibold text-gray-700 mb-1">
-            Notes
-          </label>
+          <label className="mb-1 block text-sm font-semibold text-gray-700">Notes</label>
           <textarea
             name="notes"
             value={formData.notes}
             onChange={handleChange}
-            rows="4"
-            className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            rows={4}
+            className="w-full rounded-lg border border-gray-300 p-3 shadow-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
             placeholder="Notes ou remarques..."
-          ></textarea>
+          />
         </div>
 
-        {/* 💾 Bouton */}
-        <div className="md:col-span-2 text-center mt-6">
+        {/* Bouton */}
+        <div className="mt-6 text-center md:col-span-2">
           <button
             type="submit"
-            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-8 rounded-xl shadow-md hover:shadow-lg transition"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 font-semibold text-white shadow-md transition hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg"
           >
-            <Save className="w-5 h-5" />
+            <Save className="h-5 w-5" />
             Sauvegarder
           </button>
         </div>

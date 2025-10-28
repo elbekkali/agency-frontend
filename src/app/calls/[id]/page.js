@@ -1,7 +1,6 @@
-// src/app/calls/[id]/page.js
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import CallForm from '@/components/CallForm';
@@ -14,15 +13,8 @@ export default function EditCall() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!user || (user.role !== 'admin' && user.role !== 'agent')) {
-      router.push('/dashboard');
-    } else {
-      fetchCall();
-    }
-  }, [user, router, id]);
-
-  const fetchCall = async () => {
+  // Enveloppe fetchCall dans useCallback pour qu'il soit stable
+  const fetchCall = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -40,7 +32,15 @@ export default function EditCall() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]); // id est stable → pas besoin de le re-créer
+
+  useEffect(() => {
+    if (!user || (user.role !== 'admin' && user.role !== 'agent')) {
+      router.push('/dashboard');
+    } else {
+      fetchCall();
+    }
+  }, [user, router, fetchCall]); // fetchCall ajouté ici
 
   const handleSave = async (data) => {
     try {
@@ -48,7 +48,7 @@ export default function EditCall() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
         body: JSON.stringify(data),
       });

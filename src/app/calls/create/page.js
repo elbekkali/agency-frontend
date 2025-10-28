@@ -9,7 +9,7 @@ import CallForm from '@/components/CallForm';
 export default function CreateCall() {
   const { user } = useAuth();
   const router = useRouter();
-  const [initialData, setInitialData] = useState(null);
+  const [initialData] = useState(null);
 
   if (!user || (user.role !== 'admin' && user.role !== 'agent')) router.push('/dashboard');
 
@@ -18,7 +18,7 @@ export default function CreateCall() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
       },
       body: JSON.stringify(data),
     });

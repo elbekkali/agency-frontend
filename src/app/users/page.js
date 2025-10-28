@@ -27,9 +27,12 @@ export default function Users() {
       if (!process.env.NEXT_PUBLIC_API_URL) {
         throw new Error('API URL is not defined. Check .env.local');
       }
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/?include_inactive=true`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/?include_inactive=true`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` },
+        }
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
@@ -53,7 +56,7 @@ export default function Users() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           },
         });
         if (!response.ok) {
@@ -69,12 +72,16 @@ export default function Users() {
 
   const handleToggleStatus = async (id, currentStatus) => {
     const action = currentStatus === 'active' ? 'deactivate' : 'activate';
-    if (window.confirm(`Êtes-vous sûr de vouloir ${action === 'deactivate' ? 'désactiver' : 'activer'} cet utilisateur ?`)) {
+    if (
+      window.confirm(
+        `Êtes-vous sûr de vouloir ${action === 'deactivate' ? 'désactiver' : 'activer'} cet utilisateur ?`
+      )
+    ) {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}/${action}`, {
           method: 'PATCH',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           },
         });
         if (!response.ok) {
@@ -93,14 +100,19 @@ export default function Users() {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4">Gestion des utilisateurs</h1>
+      <h1 className="mb-4 text-3xl font-bold">Gestion des utilisateurs</h1>
       <button
         onClick={() => router.push('/users/create')}
-        className="mb-4 bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600"
+        className="mb-4 rounded-md bg-blue-500 p-2 text-white hover:bg-blue-600"
       >
         Créer un nouvel utilisateur
       </button>
-      <UserTable users={users} onEdit={handleEdit} onDelete={handleDelete} onToggleStatus={handleToggleStatus} />
+      <UserTable
+        users={users}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onToggleStatus={handleToggleStatus}
+      />
     </div>
   );
 }
