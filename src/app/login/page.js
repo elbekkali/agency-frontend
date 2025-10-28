@@ -36,6 +36,7 @@ export default function Login() {
               className="w-full rounded-lg border border-gray-300 p-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="exemple@mail.com"
               required
+              autoComplete="username" // AJOUTÉ
             />
           </div>
 
@@ -48,6 +49,7 @@ export default function Login() {
               className="w-full rounded-lg border border-gray-300 p-3 shadow-sm transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="••••••••"
               required
+              autoComplete="current-password" // AJOUTÉ
             />
           </div>
 
