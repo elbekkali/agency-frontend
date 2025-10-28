@@ -24,9 +24,9 @@ export default function StableLayout({ children }) {
           boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
         }}
       />
-      <footer className="text-center text-sm text-gray-500 py-6 border-t border-gray-200 mt-8">
-        © {new Date().getFullYear()}{' '}
-        <span className="font-semibold text-blue-600">Agency</span>. Tous droits réservés.
+      <footer className="mt-8 border-t border-gray-200 py-6 text-center text-sm text-gray-500">
+        © {new Date().getFullYear()} <span className="font-semibold text-blue-600">Agency</span>.
+        Tous droits réservés.
       </footer>
     </>
   );

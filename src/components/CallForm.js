@@ -1,27 +1,24 @@
 'use client';
 
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { useReference } from '@/lib/reference';
 import { PhoneCall, User, MessageCircle, ClipboardList, Save } from 'lucide-react';
-
-// Fonction utilitaire pour comparer profondément deux objets
-const isEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // Composant Field défini en dehors de CallForm
 const Field = memo(({ label, icon: Icon, children }) => (
   <div className="space-y-1">
     <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-      {Icon && <Icon className="w-4 h-4 text-blue-500" />} {label}
+      {Icon && <Icon className="h-4 w-4 text-blue-500" />} {label}
     </label>
     {children}
   </div>
 ));
-Field.displayName = 'Field'; // Ajout du displayName pour ESLint
+Field.displayName = 'Field';
 
 export default function CallForm({ onSave, initialData }) {
   const { callTypeQueries, methodOfReplyOptions, responseStatuses, users } = useReference();
 
-  // 🧩 Modèle de base pour le formulaire
+  // Modèle de base pour le formulaire
   const initialFormData = {
     date: '',
     time: '',
@@ -42,61 +39,37 @@ export default function CallForm({ onSave, initialData }) {
     status: 'Pending',
   };
 
-  // 🧠 Initialisation de l'état avec fusion sécurisée
-  const [formData, setFormData] = useState(
-    initialData ? { ...initialFormData, ...initialData } : initialFormData
-  );
-
-  // 🧩 Fonction utilitaire pour retrouver un ID à partir d’un label ou d’un ID
+  // Fonction utilitaire pour retrouver un ID à partir d’un label ou d’un ID
   const getIdFromLabelOrId = useCallback((value, referenceArray) => {
     if (!value) return '';
-    const item = referenceArray.find(
-      (ref) => ref.id === value || ref.label === value
-    );
+    const item = referenceArray.find((ref) => ref.id === value || ref.label === value);
     return item ? item.id : value;
   }, []);
 
-  // ⚙️ Synchronisation des données initiales au montage
-  useEffect(() => {
-    if (!initialData) return;
+  // Initialisation intelligente : fusion + normalisation des IDs
+  const [formData, setFormData] = useState(() => {
+    if (!initialData) return initialFormData;
 
-    setFormData((prev) => {
-      const newFormData = {
-        ...prev,
-        type_of_query_id: getIdFromLabelOrId(
-          initialData.type_of_query_id,
-          callTypeQueries
-        ),
-        replied_to_id: getIdFromLabelOrId(
-          initialData.replied_to_id,
-          responseStatuses
-        ),
-        replied_method_id: getIdFromLabelOrId(
-          initialData.replied_method_id,
-          methodOfReplyOptions
-        ),
-        assigned_to_id: getIdFromLabelOrId(
-          initialData.assigned_to_id,
-          users
-        ),
-      };
+    return {
+      ...initialFormData,
+      ...initialData,
+      type_of_query_id: getIdFromLabelOrId(initialData.type_of_query_id, callTypeQueries),
+      replied_to_id: getIdFromLabelOrId(initialData.replied_to_id, responseStatuses),
+      replied_method_id: getIdFromLabelOrId(initialData.replied_method_id, methodOfReplyOptions),
+      assigned_to_id: getIdFromLabelOrId(initialData.assigned_to_id, users),
+    };
+  });
 
-      // Éviter la mise à jour si les données n'ont pas changé
-      if (isEqual(prev, newFormData)) return prev;
-      return newFormData;
-    });
-  }, [initialData, callTypeQueries, responseStatuses, methodOfReplyOptions, users, getIdFromLabelOrId]);
-
-  // 🧩 Gestion de la saisie
+  // Gestion de la saisie optimisée
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFormData(prev => {
+    setFormData((prev) => {
       if (prev[name] === value) return prev;
       return { ...prev, [name]: value };
     });
   }, []);
 
-  // ✅ Soumission du formulaire
+  // Soumission du formulaire
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
@@ -106,29 +79,29 @@ export default function CallForm({ onSave, initialData }) {
   );
 
   return (
-    <div className="bg-white shadow-lg rounded-2xl p-8 max-w-3xl mx-auto mt-6 border border-gray-200">
-      <h1 className="text-2xl font-bold mb-6 text-blue-700 flex items-center gap-2">
+    <div className="mx-auto mt-6 max-w-3xl rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
+      <h1 className="mb-6 flex items-center gap-2 text-2xl font-bold text-blue-700">
         {initialData ? (
           <>
-            <ClipboardList className="w-6 h-6 text-blue-600" /> Modifier un appel
+            <ClipboardList className="h-6 w-6 text-blue-600" /> Modifier un appel
           </>
         ) : (
           <>
-            <PhoneCall className="w-6 h-6 text-blue-600" /> Créer un appel
+            <PhoneCall className="h-6 w-6 text-blue-600" /> Créer un appel
           </>
         )}
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 📅 Informations principales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Informations principales */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <Field label="Date">
             <input
               type="date"
               name="date"
               value={formData.date}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               required
             />
           </Field>
@@ -139,26 +112,26 @@ export default function CallForm({ onSave, initialData }) {
               name="time"
               value={formData.time}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               required
             />
           </Field>
         </div>
 
-        {/* 👤 Informations client */}
+        {/* Informations client */}
         <div className="border-t pt-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <User className="w-5 h-5 text-blue-500" /> Informations client
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-800">
+            <User className="h-5 w-5 text-blue-500" /> Informations client
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Field label="Reçu de">
               <input
                 type="text"
                 name="recieved_from"
                 value={formData.recieved_from}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               />
             </Field>
 
@@ -169,7 +142,7 @@ export default function CallForm({ onSave, initialData }) {
                 value={formData.client_name}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               />
             </Field>
 
@@ -180,7 +153,7 @@ export default function CallForm({ onSave, initialData }) {
                 value={formData.contact_number}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               />
             </Field>
 
@@ -190,7 +163,7 @@ export default function CallForm({ onSave, initialData }) {
                 value={formData.type_of_query_id}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                className="w-full rounded-lg border border-gray-300 bg-white p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Sélectionner un type</option>
                 {callTypeQueries.map((query) => (
@@ -208,19 +181,19 @@ export default function CallForm({ onSave, initialData }) {
               value={formData.reason_of_call}
               onChange={handleChange}
               required
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               rows="3"
             />
           </Field>
         </div>
 
-        {/* 💬 Réponses */}
+        {/* Réponses */}
         <div className="border-t pt-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-blue-500" /> Suivi et réponse
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-800">
+            <MessageCircle className="h-5 w-5 text-blue-500" /> Suivi et réponse
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Field label="Répondu par">
               <input
                 type="text"
@@ -228,7 +201,7 @@ export default function CallForm({ onSave, initialData }) {
                 value={formData.answered_by}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               />
             </Field>
 
@@ -238,7 +211,7 @@ export default function CallForm({ onSave, initialData }) {
                 value={formData.replied_to_id}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                className="w-full rounded-lg border border-gray-300 bg-white p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Sélectionner un statut</option>
                 {responseStatuses.map((status) => (
@@ -255,7 +228,7 @@ export default function CallForm({ onSave, initialData }) {
                 value={formData.replied_method_id}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                className="w-full rounded-lg border border-gray-300 bg-white p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Sélectionner une méthode</option>
                 {methodOfReplyOptions.map((method) => (
@@ -273,30 +246,30 @@ export default function CallForm({ onSave, initialData }) {
                 value={formData.replied_by}
                 onChange={handleChange}
                 required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               />
             </Field>
           </div>
         </div>
 
-        {/* 🧾 Actions */}
+        {/* Actions */}
         <div className="border-t pt-4">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-blue-500" /> Actions et statut
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-800">
+            <ClipboardList className="h-5 w-5 text-blue-500" /> Actions et statut
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Field label="Assigné à">
               <select
                 name="assigned_to_id"
                 value={formData.assigned_to_id}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                className="w-full rounded-lg border border-gray-300 bg-white p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Non assigné</option>
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
-                    {`${user.first_name} ${user.last_name}` || user.email}
+                    {`${user.first_name} ${user.last_name}`.trim() || user.email}
                   </option>
                 ))}
               </select>
@@ -307,7 +280,7 @@ export default function CallForm({ onSave, initialData }) {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                className="w-full rounded-lg border border-gray-300 bg-white p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Open">Ouvert</option>
                 <option value="Pending">En attente</option>
@@ -322,7 +295,7 @@ export default function CallForm({ onSave, initialData }) {
               name="action_to_be_taken_by"
               value={formData.action_to_be_taken_by}
               onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
             />
           </Field>
 
@@ -332,7 +305,7 @@ export default function CallForm({ onSave, initialData }) {
               value={formData.actions_to_be_taken}
               onChange={handleChange}
               rows="2"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
             />
           </Field>
 
@@ -342,7 +315,7 @@ export default function CallForm({ onSave, initialData }) {
               value={formData.action_taken}
               onChange={handleChange}
               rows="2"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
             />
           </Field>
 
@@ -352,18 +325,18 @@ export default function CallForm({ onSave, initialData }) {
               value={formData.other_comments}
               onChange={handleChange}
               rows="3"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
             />
           </Field>
         </div>
 
-        {/* 💾 Bouton */}
+        {/* Bouton */}
         <div className="pt-6">
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:from-blue-700 hover:to-indigo-700"
           >
-            <Save className="w-5 h-5" />
+            <Save className="h-5 w-5" />
             Sauvegarder
           </button>
         </div>

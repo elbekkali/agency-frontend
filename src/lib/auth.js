@@ -1,31 +1,32 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) setUser(JSON.parse(storedUser));
-    }
-  }, []);
+  // Initialisation directe depuis localStorage
+  const [user, setUser] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
 
   const login = async (email, password) => {
     if (!process.env.NEXT_PUBLIC_API_URL) {
       throw new Error('API URL is not defined. Check .env.local');
     }
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/token`, new URLSearchParams({
-      username: email,
-      password: password,
-    }), {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/token`,
+      new URLSearchParams({
+        username: email,
+        password: password,
+      }),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      }
+    );
     const { access_token, refresh_token } = response.data;
     localStorage.setItem('access_token', access_token);
     localStorage.setItem('refresh_token', refresh_token);
@@ -48,7 +49,9 @@ export function AuthProvider({ children }) {
   const refreshToken = async () => {
     const refreshToken = localStorage.getItem('refresh_token');
     if (refreshToken) {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/refresh-token`, { refresh_token: refreshToken });
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/refresh-token`, {
+        refresh_token: refreshToken,
+      });
       const { access_token } = response.data;
       localStorage.setItem('access_token', access_token);
       return access_token;
