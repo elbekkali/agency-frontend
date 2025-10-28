@@ -184,7 +184,14 @@ export default function UserForm({ onSave, initialData }) {
             {/* Zone d'aperçu */}
             <label className="relative flex h-24 w-24 cursor-pointer items-center justify-center rounded-full border-2 border-dashed bg-gray-100 transition hover:bg-gray-200">
               {preview ? (
-                <Image src={preview} alt="Aperçu" fill className="rounded-full object-cover" />
+                <Image
+                  src={preview}
+                  alt="Aperçu"
+                  width={96}
+                  height={96}
+                  className="rounded-full object-cover"
+                  unoptimized
+                />
               ) : (
                 <Camera className="h-8 w-8 text-gray-500" />
               )}

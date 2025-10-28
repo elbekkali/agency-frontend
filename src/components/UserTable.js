@@ -37,8 +37,10 @@ export default function UserTable({ users, onEdit, onDelete, onToggleStatus }) {
                       <Image
                         src={user.profile_picture}
                         alt={user.first_name}
-                        fill
+                        width={40}
+                        height={40}
                         className="rounded-full object-cover shadow-sm"
+                        unoptimized
                       />
                     ) : (
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-sm">
