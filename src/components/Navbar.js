@@ -76,8 +76,10 @@ export default function Navbar() {
                   <Image
                     src={user.profile_picture}
                     alt="Profil"
-                    fill
+                    width={40}
+                    height={40}
                     className="rounded-full border-2 border-white object-cover shadow-md transition hover:scale-105"
+                    unoptimized
                   />
                 ) : (
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 font-semibold text-white transition hover:bg-white/30">
