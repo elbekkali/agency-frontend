@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/auth';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LogOut, LogIn, User, Phone, Home } from 'lucide-react';
+import { LogOut, LogIn, User, Phone, Home, Stamp } from 'lucide-react';
 import Image from 'next/image';
 
 export default function Navbar() {
@@ -16,6 +16,9 @@ export default function Navbar() {
     { href: '/', label: 'Accueil', icon: <Home className="h-4 w-4" /> },
     { href: '/users', label: 'Utilisateurs', icon: <User className="h-4 w-4" /> },
     { href: '/calls', label: 'Appels', icon: <Phone className="h-4 w-4" /> },
+
+    // ✅ Nouveau lien ajouté
+    { href: '/visa-saoudit', label: 'Visa Saoudit', icon: <Stamp className="h-4 w-4" /> },
   ];
 
   const getInitials = (firstName, lastName, email) => {
